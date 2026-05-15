@@ -34,6 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN playwright install chromium --with-deps 2>/dev/null || true
 
 COPY . .
+RUN chmod +x start.sh
 
-EXPOSE 5000
-CMD ["/bin/sh", "-c", "gunicorn app:app --workers 1 --threads 8 --timeout 120 --bind 0.0.0.0:${PORT:-5000}"]
+EXPOSE 8080
+CMD ["/app/start.sh"]
