@@ -6,140 +6,221 @@
 <title>Grocery Order</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-         background: #f5f5f5; color: #222; min-height: 100vh; }
-  header { background: #000; color: #fff; padding: 16px 20px;
-           display: flex; align-items: center; justify-content: space-between; }
-  header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: .5px; }
-  .badge { background: #06c167; color: #fff; border-radius: 999px;
-           font-size: .75rem; padding: 2px 10px; font-weight: 600; }
-  main { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
-  .card { background: #fff; border-radius: 12px; padding: 20px;
-          box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 20px; }
-  .card h2 { font-size: .9rem; font-weight: 600; text-transform: uppercase;
-             letter-spacing: .5px; color: #555; margin-bottom: 16px; }
-  .form-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .form-row input { flex: 1; min-width: 120px; padding: 10px 12px;
-                    border: 1px solid #ddd; border-radius: 8px; font-size: .95rem; }
-  .form-row input:focus { outline: none; border-color: #06c167; }
-  .form-row input[name="url"] { flex: 2; }
-  .btn-add { background: #06c167; color: #fff; border: none; border-radius: 8px;
-             padding: 10px 20px; font-size: .95rem; font-weight: 600; cursor: pointer;
-             white-space: nowrap; }
-  .btn-add:active { background: #059a55; }
-  .item-list { list-style: none; }
-  .item-row { display: flex; align-items: center; gap: 10px;
-              padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-  .item-row:last-child { border-bottom: none; }
-  .item-name { font-weight: 500; flex: 1; }
-  .item-qty { color: #666; font-size: .9rem; white-space: nowrap; }
-  .item-url { font-size: .8rem; color: #06c167; word-break: break-all; }
-  .empty { color: #aaa; font-size: .9rem; text-align: center; padding: 24px 0; }
-  .count { font-size: .8rem; color: #888; margin-bottom: 12px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         background: #fafafa; color: #111; min-height: 100vh; }
+
+  /* Header */
+  .page-header { background: #fff; border-bottom: 1px solid #e4e4e7; padding: 24px 32px 0; }
+  .page-header-top { display: flex; align-items: flex-start; justify-content: space-between;
+                     margin-bottom: 4px; }
+  .page-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.3px; }
+  .page-header p  { color: #71717a; font-size: .875rem; margin-bottom: 16px; }
+  .header-actions { display: flex; gap: 8px; align-items: center; padding-top: 2px; }
+  .live-dot { display: flex; align-items: center; gap: 5px; font-size: .8rem;
+              color: #16a34a; font-weight: 500; }
+  .live-dot span { width: 8px; height: 8px; background: #16a34a; border-radius: 50%;
+                   display: inline-block; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-top: 1px solid #e4e4e7; margin-top: 16px; }
+  .tab { padding: 10px 16px; font-size: .875rem; color: #71717a; cursor: pointer;
+         border-bottom: 2px solid transparent; margin-bottom: -1px; user-select: none; }
+  .tab.active { color: #111; border-bottom-color: #111; font-weight: 500; }
+
+  /* Layout */
+  main { max-width: 900px; margin: 0 auto; padding: 28px 24px; }
+
+  /* Add form card */
+  .add-card { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+              padding: 20px 24px; margin-bottom: 24px; }
+  .add-card h2 { font-size: .8rem; font-weight: 600; text-transform: uppercase;
+                 letter-spacing: .6px; color: #71717a; margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 100px 1fr; gap: 10px; align-items: end; }
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-field label { display: block; font-size: .78rem; font-weight: 500;
+                      color: #52525b; margin-bottom: 4px; }
+  .form-field input { width: 100%; padding: 8px 12px; border: 1px solid #d4d4d8;
+                      border-radius: 6px; font-size: .9rem; font-family: inherit;
+                      background: #fff; color: #111; }
+  .form-field input:focus { outline: none; border-color: #111;
+                            box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+  .btn-submit { background: #111; color: #fff; border: none; border-radius: 6px;
+                padding: 9px 20px; font-size: .875rem; font-weight: 600; cursor: pointer;
+                white-space: nowrap; width: 100%; }
+  .btn-submit:hover { background: #27272a; }
+
+  /* Column header */
+  .col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .col-header h3 { font-size: .95rem; font-weight: 600; }
+  .col-count { background: #f4f4f5; border: 1px solid #e4e4e7; color: #52525b;
+               border-radius: 999px; font-size: .75rem; font-weight: 600;
+               padding: 1px 9px; min-width: 24px; text-align: center; }
+
+  /* Item cards */
+  .item-card { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+               padding: 0; margin-bottom: 8px; display: flex; align-items: stretch;
+               transition: box-shadow .15s; cursor: default; }
+  .item-card:hover { box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+  .item-num { display: flex; flex-direction: column; align-items: center;
+              justify-content: center; padding: 14px 12px;
+              border-right: 1px solid #f4f4f5; min-width: 52px; }
+  .item-num .num { font-size: 1rem; font-weight: 700; color: #111; }
+  .item-num .num-label { font-size: .65rem; color: #a1a1aa; margin-top: 1px; }
+  .item-body { flex: 1; padding: 14px 16px; min-width: 0; }
+  .item-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .tag { display: inline-block; padding: 2px 9px; border-radius: 999px;
+         font-size: .72rem; font-weight: 600; letter-spacing: .2px; }
+  .tag-grocery { background: #dcfce7; color: #15803d; }
+  .tag-url     { background: #eff6ff; color: #1d4ed8; }
+  .item-name { font-size: .95rem; font-weight: 600; color: #111; }
+  .item-meta  { font-size: .8rem; color: #71717a; margin-top: 2px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-chevron { display: flex; align-items: center; padding: 0 14px;
+                  color: #d4d4d8; font-size: 1rem; }
+  .empty-state { text-align: center; padding: 48px 0; color: #a1a1aa; font-size: .9rem; }
+
+  /* Toast */
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-           background: #222; color: #fff; padding: 10px 22px; border-radius: 999px;
-           font-size: .9rem; opacity: 0; transition: opacity .3s;
-           pointer-events: none; z-index: 99; }
+           background: #111; color: #fff; padding: 9px 20px; border-radius: 999px;
+           font-size: .85rem; opacity: 0; transition: opacity .25s;
+           pointer-events: none; z-index: 99; white-space: nowrap; }
   .toast.show { opacity: 1; }
 </style>
 </head>
 <body>
-<header>
-  <h1>🛒 Grocery Order</h1>
-  <span class="badge" id="live-dot">● LIVE</span>
-</header>
+
+<div class="page-header">
+  <div class="page-header-top">
+    <div>
+      <h1>Grocery Order</h1>
+      <p>Add items to the next office grocery run. Updates live for everyone.</p>
+    </div>
+    <div class="header-actions">
+      <div class="live-dot" id="live-dot"><span></span> Live</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active">Current Order</div>
+  </div>
+</div>
+
 <main>
-  <div class="card">
-    <h2>Add an item</h2>
+  <!-- Add item -->
+  <div class="add-card">
+    <h2>Submit an item</h2>
     <form id="add-form">
-      <div class="form-row">
-        <input name="name" placeholder="Item name *" required autocomplete="off">
-        <input name="quantity" placeholder="Qty *" required autocomplete="off" style="flex:0 0 90px">
-        <input name="url" placeholder="Uber Eats URL (optional)" autocomplete="off">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Item name *</label>
+          <input name="name" placeholder="e.g. Oat milk" required autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label>Qty *</label>
+          <input name="quantity" placeholder="e.g. 2" required autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label>Uber Eats URL <span style="color:#a1a1aa;font-weight:400">(optional)</span></label>
+          <input name="url" placeholder="Paste item link" autocomplete="off">
+        </div>
       </div>
       <br>
-      <button class="btn-add" type="submit">Add to list</button>
+      <button class="btn-submit" type="submit">Add to list →</button>
     </form>
   </div>
 
-  <div class="card">
-    <h2>Current list</h2>
-    <div class="count" id="count"></div>
-    <ul class="item-list" id="item-list">
-      {% if items %}
-        {% for item in items %}
-        <li class="item-row">
-          <div>
-            <div class="item-name">{{ item.name }}</div>
-            {% if item.url %}<div class="item-url"><a href="{{ item.url }}" target="_blank">link</a></div>{% endif %}
+  <!-- Item list -->
+  <div class="col-header">
+    <h3>Items</h3>
+    <span class="col-count" id="col-count">{{ items|length }}</span>
+  </div>
+
+  <div id="item-list">
+    {% if items %}
+      {% for item in items %}
+      <div class="item-card">
+        <div class="item-num">
+          <div class="num">{{ loop.index }}</div>
+          <div class="num-label">item</div>
+        </div>
+        <div class="item-body">
+          <div class="item-top">
+            <span class="tag tag-grocery">Grocery</span>
+            {% if item.url %}<span class="tag tag-url">has link</span>{% endif %}
           </div>
-          <div class="item-qty">× {{ item.quantity }}</div>
-        </li>
-        {% endfor %}
-      {% else %}
-        <li class="empty" id="empty-msg">No items yet — be the first!</li>
-      {% endif %}
-    </ul>
+          <div class="item-name">{{ item.name }}</div>
+          <div class="item-meta">Qty: {{ item.quantity }}{% if item.url %} · <a href="{{ item.url }}" target="_blank" style="color:#1d4ed8;text-decoration:none">View on Uber Eats</a>{% endif %}</div>
+        </div>
+        <div class="item-chevron">›</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No items yet — add the first one above!</div>
+    {% endif %}
   </div>
 </main>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const form = document.getElementById('add-form');
-const list = document.getElementById('item-list');
-const countEl = document.getElementById('count');
+const listEl = document.getElementById('item-list');
+const countEl = document.getElementById('col-count');
 const toast = document.getElementById('toast');
 
 function showToast(msg) {
   toast.textContent = msg;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2200);
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function renderItems(items) {
+  countEl.textContent = items.length;
   if (!items.length) {
-    list.innerHTML = '<li class="empty">No items yet — be the first!</li>';
-    countEl.textContent = '';
+    listEl.innerHTML = '<div class="empty-state">No items yet — add the first one above!</div>';
     return;
   }
-  countEl.textContent = items.length + ' item' + (items.length === 1 ? '' : 's');
-  list.innerHTML = items.map(i => `
-    <li class="item-row">
-      <div>
-        <div class="item-name">${escHtml(i.name)}</div>
-        ${i.url ? `<div class="item-url"><a href="${escHtml(i.url)}" target="_blank">link</a></div>` : ''}
+  listEl.innerHTML = items.map((item, i) => `
+    <div class="item-card">
+      <div class="item-num">
+        <div class="num">${i+1}</div>
+        <div class="num-label">item</div>
       </div>
-      <div class="item-qty">× ${escHtml(i.quantity)}</div>
-    </li>`).join('');
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      <div class="item-body">
+        <div class="item-top">
+          <span class="tag tag-grocery">Grocery</span>
+          ${item.url ? '<span class="tag tag-url">has link</span>' : ''}
+        </div>
+        <div class="item-name">${esc(item.name)}</div>
+        <div class="item-meta">Qty: ${esc(item.quantity)}${item.url ? ` · <a href="${esc(item.url)}" target="_blank" style="color:#1d4ed8;text-decoration:none">View on Uber Eats</a>` : ''}</div>
+      </div>
+      <div class="item-chevron">›</div>
+    </div>`).join('');
 }
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
   const fd = new FormData(form);
-  const body = { name: fd.get('name'), quantity: fd.get('quantity'), url: fd.get('url') };
-  const r = await fetch('/items', { method: 'POST', headers: {'Content-Type':'application/json'},
-                                     body: JSON.stringify(body) });
-  if (r.ok) { form.reset(); showToast('Added!'); }
+  const r = await fetch('/items', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name: fd.get('name'), quantity: fd.get('quantity'), url: fd.get('url') })
+  });
+  if (r.ok) { form.reset(); showToast('Item added!'); }
   else { const d = await r.json(); showToast(d.error || 'Error'); }
 });
 
-// SSE
 const es = new EventSource('/events');
-es.addEventListener('refresh', e => {
-  renderItems(JSON.parse(e.data));
-});
+es.addEventListener('refresh', e => renderItems(JSON.parse(e.data)));
 es.onerror = () => {
-  document.getElementById('live-dot').textContent = '○ offline';
-  document.getElementById('live-dot').style.background = '#ccc';
+  const dot = document.getElementById('live-dot');
+  dot.innerHTML = '<span style="background:#ef4444;animation:none"></span> Offline';
+  dot.style.color = '#ef4444';
 };
-
-// Init count
-const initItems = {{ items | tojson }};
-if (initItems.length) countEl.textContent = initItems.length + ' item' + (initItems.length === 1 ? '' : 's');
 </script>
 </body>
 </html>

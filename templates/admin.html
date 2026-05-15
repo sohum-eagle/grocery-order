@@ -6,219 +6,294 @@
 <title>Admin — Grocery Order</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-         background: #f5f5f5; color: #222; min-height: 100vh; }
-  header { background: #000; color: #fff; padding: 16px 20px;
-           display: flex; align-items: center; justify-content: space-between; }
-  header h1 { font-size: 1.1rem; font-weight: 600; }
-  header nav { display: flex; gap: 16px; align-items: center; }
-  header a { color: #aaa; text-decoration: none; font-size: .9rem; }
-  header a:hover { color: #fff; }
-  main { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
-  .card { background: #fff; border-radius: 12px; padding: 20px;
-          box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 20px; }
-  .card h2 { font-size: .85rem; font-weight: 600; text-transform: uppercase;
-             letter-spacing: .5px; color: #555; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: .8rem; color: #888; font-weight: 500;
-       padding: 0 8px 8px 0; border-bottom: 1px solid #eee; }
-  td { padding: 10px 8px 10px 0; border-bottom: 1px solid #f5f5f5;
-       vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  .editable { border: none; background: transparent; font-size: .95rem;
-              font-family: inherit; width: 100%; padding: 4px 6px;
-              border-radius: 6px; }
-  .editable:focus { outline: none; background: #f0faf4; }
-  .col-name { min-width: 140px; }
-  .col-qty  { width: 80px; }
-  .col-url  { width: 200px; }
-  .col-act  { width: 80px; text-align: right; }
-  .btn-save { background: #06c167; color: #fff; border: none; border-radius: 6px;
-              padding: 5px 10px; font-size: .8rem; cursor: pointer; margin-right: 4px; }
-  .btn-del  { background: #fee; color: #c00; border: 1px solid #fcc;
-              border-radius: 6px; padding: 5px 10px; font-size: .8rem; cursor: pointer; }
-  .empty-msg { color: #aaa; font-size: .9rem; text-align: center; padding: 20px 0; }
-  /* Order section */
-  .order-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
-  .order-row label { font-size: .85rem; color: #555; display: block; margin-bottom: 4px; }
-  .order-row select, .order-row input { padding: 9px 12px; border: 1px solid #ddd;
-      border-radius: 8px; font-size: .9rem; background: #fff; }
-  .order-row select:focus, .order-row input:focus { outline: none; border-color: #06c167; }
-  .btn-place { background: #000; color: #fff; border: none; border-radius: 8px;
-               padding: 10px 22px; font-size: .95rem; font-weight: 600; cursor: pointer; }
-  .btn-place:disabled { background: #aaa; cursor: default; }
-  /* Spinner */
-  .spinner { display: inline-block; width: 16px; height: 16px;
-             border: 2px solid #fff; border-top-color: transparent;
-             border-radius: 50%; animation: spin .6s linear infinite;
-             vertical-align: middle; margin-right: 6px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         background: #fafafa; color: #111; min-height: 100vh; }
+
+  /* Header */
+  .page-header { background: #fff; border-bottom: 1px solid #e4e4e7; padding: 24px 32px 0; }
+  .page-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+  .page-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.3px; }
+  .page-header p  { color: #71717a; font-size: .875rem; margin-bottom: 16px; }
+  .header-nav { display: flex; gap: 16px; align-items: center; padding-top: 4px; }
+  .header-nav a { font-size: .82rem; color: #71717a; text-decoration: none; }
+  .header-nav a:hover { color: #111; }
+  .header-nav a.danger { color: #dc2626; }
+  .tabs { display: flex; gap: 0; border-top: 1px solid #e4e4e7; margin-top: 16px; }
+  .tab { padding: 10px 16px; font-size: .875rem; color: #71717a; cursor: pointer;
+         border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: #111; border-bottom-color: #111; font-weight: 500; }
+
+  /* Layout */
+  main { max-width: 960px; margin: 0 auto; padding: 28px 24px; }
+  .cols { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+  @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+
+  /* Section headers */
+  .col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .col-header h3 { font-size: .95rem; font-weight: 600; }
+  .col-count { background: #f4f4f5; border: 1px solid #e4e4e7; color: #52525b;
+               border-radius: 999px; font-size: .75rem; font-weight: 600;
+               padding: 1px 9px; text-align: center; }
+
+  /* Item cards */
+  .item-card { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+               padding: 0; margin-bottom: 8px; display: flex; align-items: stretch; }
+  .item-num { display: flex; flex-direction: column; align-items: center;
+              justify-content: center; padding: 12px 12px;
+              border-right: 1px solid #f4f4f5; min-width: 48px; }
+  .item-num .num { font-size: .95rem; font-weight: 700; color: #111; }
+  .item-num .num-label { font-size: .6rem; color: #a1a1aa; margin-top: 1px; }
+  .item-body { flex: 1; padding: 12px 14px; min-width: 0; }
+  .item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px;
+         font-size: .71rem; font-weight: 600; }
+  .tag-grocery { background: #dcfce7; color: #15803d; }
+  .tag-url     { background: #eff6ff; color: #1d4ed8; }
+  .item-inputs { display: grid; grid-template-columns: 1fr 80px 1fr; gap: 8px; }
+  @media (max-width: 500px) { .item-inputs { grid-template-columns: 1fr; } }
+  .item-inputs input { width: 100%; padding: 6px 10px; border: 1px solid #d4d4d8;
+                       border-radius: 6px; font-size: .85rem; font-family: inherit; background: #fff; }
+  .item-inputs input:focus { outline: none; border-color: #111; box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+  .item-actions { display: flex; flex-direction: column; justify-content: center;
+                  gap: 6px; padding: 12px 12px 12px 0; }
+  .btn-save { background: #111; color: #fff; border: none; border-radius: 6px;
+              padding: 5px 12px; font-size: .78rem; font-weight: 600; cursor: pointer;
+              white-space: nowrap; }
+  .btn-save:hover { background: #27272a; }
+  .btn-del  { background: #fff; color: #dc2626; border: 1px solid #fecaca;
+              border-radius: 6px; padding: 5px 12px; font-size: .78rem; cursor: pointer;
+              white-space: nowrap; }
+  .btn-del:hover { background: #fef2f2; }
+  .empty-state { text-align: center; padding: 40px 0; color: #a1a1aa; font-size: .875rem; }
+
+  /* Right column cards */
+  .side-card { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+               padding: 20px; margin-bottom: 16px; }
+  .side-card h3 { font-size: .8rem; font-weight: 600; text-transform: uppercase;
+                  letter-spacing: .5px; color: #71717a; margin-bottom: 14px; }
+  .form-field { margin-bottom: 10px; }
+  .form-field label { display: block; font-size: .78rem; font-weight: 500;
+                      color: #52525b; margin-bottom: 4px; }
+  .form-field select, .form-field input[type="text"] {
+    width: 100%; padding: 8px 10px; border: 1px solid #d4d4d8; border-radius: 6px;
+    font-size: .875rem; font-family: inherit; background: #fff; }
+  .form-field select:focus, .form-field input[type="text"]:focus {
+    outline: none; border-color: #111; box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+  .btn-place { width: 100%; background: #111; color: #fff; border: none; border-radius: 6px;
+               padding: 10px; font-size: .875rem; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .btn-place:hover { background: #27272a; }
+  .btn-place:disabled { background: #a1a1aa; cursor: default; }
+  .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid #fff;
+             border-top-color: transparent; border-radius: 50%;
+             animation: spin .6s linear infinite; vertical-align: middle; margin-right: 5px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .status-box { margin-top: 12px; padding: 12px 16px; border-radius: 8px;
-                font-size: .9rem; display: none; }
-  .status-box.running { background: #fff8e1; color: #8a6500; display: block; }
-  .status-box.done    { background: #e8faf0; color: #0a6634; display: block; }
-  .status-box.error   { background: #fff0f0; color: #c00; display: block; }
-  .status-box a { color: inherit; font-weight: 600; }
-  /* Addresses */
-  .addr-list { list-style: none; margin-bottom: 12px; }
-  .addr-row { display: flex; align-items: center; gap: 8px; padding: 6px 0;
-              border-bottom: 1px solid #f5f5f5; font-size: .9rem; }
+  .status-box { margin-top: 10px; padding: 10px 12px; border-radius: 6px;
+                font-size: .82rem; display: none; line-height: 1.4; }
+  .status-box.running { background: #fefce8; border: 1px solid #fde047; color: #854d0e; display: block; }
+  .status-box.done    { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; display: block; }
+  .status-box.error   { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; display: block; }
+  .status-box a { color: inherit; font-weight: 700; }
+
+  /* Address list */
+  .addr-row { display: flex; align-items: center; gap: 8px; padding: 7px 0;
+              border-bottom: 1px solid #f4f4f5; font-size: .85rem; }
   .addr-row:last-child { border-bottom: none; }
-  .addr-name { font-weight: 500; min-width: 100px; }
-  .addr-addr { color: #666; flex: 1; }
-  .add-addr-form { display: flex; gap: 8px; flex-wrap: wrap; }
-  .add-addr-form input { flex: 1; min-width: 120px; padding: 8px 10px;
-      border: 1px solid #ddd; border-radius: 7px; font-size: .9rem; }
-  .add-addr-form input:focus { outline: none; border-color: #06c167; }
-  .btn-sm { background: #06c167; color: #fff; border: none; border-radius: 7px;
-            padding: 8px 14px; font-size: .85rem; font-weight: 600; cursor: pointer; }
-  .btn-sm-del { background: #fee; color: #c00; border: 1px solid #fcc;
-                border-radius: 6px; padding: 4px 8px; font-size: .8rem; cursor: pointer; }
+  .addr-name { font-weight: 600; min-width: 80px; color: #111; }
+  .addr-text { color: #71717a; flex: 1; font-size: .8rem; overflow: hidden;
+               text-overflow: ellipsis; white-space: nowrap; }
+  .btn-xs-del { background: none; border: none; color: #d4d4d8; cursor: pointer;
+                font-size: 1rem; line-height: 1; padding: 2px 4px; border-radius: 4px; }
+  .btn-xs-del:hover { color: #dc2626; background: #fef2f2; }
+  .add-addr { display: flex; gap: 6px; margin-top: 10px; }
+  .add-addr input { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid #d4d4d8;
+                    border-radius: 6px; font-size: .82rem; font-family: inherit; }
+  .add-addr input:focus { outline: none; border-color: #111; }
+  .btn-sm-add { background: #111; color: #fff; border: none; border-radius: 6px;
+                padding: 7px 12px; font-size: .8rem; font-weight: 600; cursor: pointer;
+                white-space: nowrap; }
+  .btn-sm-add:hover { background: #27272a; }
+  .no-addr { font-size: .82rem; color: #a1a1aa; padding: 4px 0 8px; }
 </style>
 </head>
 <body>
-<header>
-  <h1>🛒 Admin Panel</h1>
-  <nav>
-    <a href="/">Submission page ↗</a>
-    <a href="/admin/orders">Order history</a>
-    <a href="/logout">Logout</a>
-  </nav>
-</header>
-<main>
 
-  <!-- Current items -->
-  <div class="card">
-    <h2>Current list (<span id="item-count">{{ items|length }}</span> items)</h2>
-    <table id="items-table">
-      <thead>
-        <tr>
-          <th class="col-name">Item</th>
-          <th class="col-qty">Qty</th>
-          <th class="col-url">URL</th>
-          <th class="col-act"></th>
-        </tr>
-      </thead>
-      <tbody id="items-body">
+<div class="page-header">
+  <div class="page-header-top">
+    <div>
+      <h1>Admin Panel</h1>
+      <p>Review items, manage addresses, and build the Uber Eats cart.</p>
+    </div>
+    <div class="header-nav">
+      <a href="/">Submission page ↗</a>
+      <a href="/admin/orders">Order history</a>
+      <a href="/logout" class="danger">Logout</a>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active">Current Order</div>
+  </div>
+</div>
+
+<main>
+  <div class="cols">
+
+    <!-- Left: item list -->
+    <div>
+      <div class="col-header">
+        <h3>Items</h3>
+        <span class="col-count" id="item-count">{{ items|length }}</span>
+      </div>
+
+      <div id="item-list">
         {% if items %}
           {% for item in items %}
-          <tr data-id="{{ item.id }}">
-            <td><input class="editable" data-field="name" value="{{ item.name }}"></td>
-            <td><input class="editable" data-field="quantity" value="{{ item.quantity }}"></td>
-            <td><input class="editable" data-field="url" value="{{ item.url or '' }}" placeholder="—"></td>
-            <td style="text-align:right">
+          <div class="item-card" data-id="{{ item.id }}">
+            <div class="item-num">
+              <div class="num">{{ loop.index }}</div>
+              <div class="num-label">item</div>
+            </div>
+            <div class="item-body">
+              <div class="item-top">
+                <span class="tag tag-grocery">Grocery</span>
+                {% if item.url %}<span class="tag tag-url">has link</span>{% endif %}
+              </div>
+              <div class="item-inputs">
+                <input data-field="name" value="{{ item.name }}" placeholder="Item name">
+                <input data-field="quantity" value="{{ item.quantity }}" placeholder="Qty">
+                <input data-field="url" value="{{ item.url or '' }}" placeholder="URL (optional)">
+              </div>
+            </div>
+            <div class="item-actions">
               <button class="btn-save" onclick="saveItem(this)">Save</button>
-              <button class="btn-del" onclick="deleteItem(this)">✕</button>
-            </td>
-          </tr>
+              <button class="btn-del"  onclick="deleteItem(this)">Remove</button>
+            </div>
+          </div>
           {% endfor %}
         {% else %}
-          <tr><td colspan="4" class="empty-msg">No items yet.</td></tr>
+          <div class="empty-state" id="empty-msg">No items submitted yet.</div>
         {% endif %}
-      </tbody>
-    </table>
-  </div>
+      </div>
+    </div>
 
-  <!-- Place order -->
-  <div class="card">
-    <h2>Place order</h2>
-    <div class="order-row">
-      <div>
-        <label>Delivery address</label>
-        <select id="addr-select">
-          <option value="">— select address —</option>
+    <!-- Right: order + addresses -->
+    <div>
+
+      <!-- Place order -->
+      <div class="side-card">
+        <h3>Place order</h3>
+        <div class="form-field">
+          <label>Delivery address</label>
+          <select id="addr-select">
+            <option value="">— select address —</option>
+            {% for a in addresses %}
+            <option value="{{ a.id }}">{{ a.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Store hint</label>
+          <input type="text" id="store-hint" placeholder="e.g. Whole Foods, grocery" value="grocery">
+        </div>
+        <button class="btn-place" id="place-btn" onclick="placeOrder()">
+          Build Cart on Uber Eats →
+        </button>
+        <div class="status-box" id="status-box"></div>
+      </div>
+
+      <!-- Saved addresses -->
+      <div class="side-card">
+        <h3>Saved addresses</h3>
+        <div id="addr-list">
           {% for a in addresses %}
-          <option value="{{ a.id }}">{{ a.name }} — {{ a.address }}</option>
+          <div class="addr-row" data-id="{{ a.id }}">
+            <span class="addr-name">{{ a.name }}</span>
+            <span class="addr-text" title="{{ a.address }}">{{ a.address }}</span>
+            <button class="btn-xs-del" onclick="deleteAddress(this)" title="Remove">✕</button>
+          </div>
+          {% else %}
+          <div class="no-addr">No addresses saved yet.</div>
           {% endfor %}
-        </select>
+        </div>
+        <div class="add-addr">
+          <input id="new-addr-name" placeholder="Label" style="flex:0 0 90px">
+          <input id="new-addr-addr" placeholder="Full address">
+          <button class="btn-sm-add" onclick="addAddress()">Add</button>
+        </div>
       </div>
-      <div>
-        <label>Store hint</label>
-        <input id="store-hint" placeholder="e.g. Whole Foods, grocery" value="grocery">
-      </div>
-      <button class="btn-place" id="place-btn" onclick="placeOrder()">Build Cart on Uber Eats</button>
-    </div>
-    <div class="status-box" id="status-box"></div>
-  </div>
 
-  <!-- Delivery addresses -->
-  <div class="card">
-    <h2>Saved addresses</h2>
-    <ul class="addr-list" id="addr-list">
-      {% for a in addresses %}
-      <li class="addr-row" data-id="{{ a.id }}">
-        <span class="addr-name">{{ a.name }}</span>
-        <span class="addr-addr">{{ a.address }}</span>
-        <button class="btn-sm-del" onclick="deleteAddress(this)">✕</button>
-      </li>
-      {% else %}
-      <li class="addr-row"><span style="color:#aaa;font-size:.9rem">No addresses saved yet.</span></li>
-      {% endfor %}
-    </ul>
-    <div class="add-addr-form">
-      <input id="new-addr-name" placeholder="Label (e.g. Eagle Office)">
-      <input id="new-addr-addr" placeholder="Full address">
-      <button class="btn-sm" onclick="addAddress()">Add</button>
     </div>
   </div>
-
 </main>
 
 <script>
-// SSE — keep item list in sync
+// SSE
 const es = new EventSource('/events');
 es.addEventListener('refresh', e => {
   const items = JSON.parse(e.data);
   document.getElementById('item-count').textContent = items.length;
-  renderItemsTable(items);
+  renderItems(items);
 });
 es.addEventListener('order-done', e => {
   const d = JSON.parse(e.data);
   setStatus(d.status, d.status === 'done'
-    ? 'Cart built! <a href="https://www.ubereats.com/cart" target="_blank">Open Uber Eats →</a>'
+    ? '✓ Cart built! <a href="https://www.ubereats.com/cart" target="_blank">Open Uber Eats →</a>'
     : (d.message || 'Unknown error'));
-  document.getElementById('place-btn').disabled = false;
-  document.getElementById('place-btn').textContent = 'Build Cart on Uber Eats';
+  const btn = document.getElementById('place-btn');
+  btn.disabled = false;
+  btn.textContent = 'Build Cart on Uber Eats →';
 });
-
-function renderItemsTable(items) {
-  const tbody = document.getElementById('items-body');
-  if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">No items yet.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = items.map(i => `
-    <tr data-id="${i.id}">
-      <td><input class="editable" data-field="name" value="${esc(i.name)}"></td>
-      <td><input class="editable" data-field="quantity" value="${esc(i.quantity)}"></td>
-      <td><input class="editable" data-field="url" value="${esc(i.url||'')}" placeholder="—"></td>
-      <td style="text-align:right">
-        <button class="btn-save" onclick="saveItem(this)">Save</button>
-        <button class="btn-del" onclick="deleteItem(this)">✕</button>
-      </td>
-    </tr>`).join('');
-}
 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function getRow(btn) { return btn.closest('tr'); }
-function getVal(row, field) { return row.querySelector(`[data-field="${field}"]`).value.trim(); }
+function renderItems(items) {
+  const el = document.getElementById('item-list');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state">No items submitted yet.</div>';
+    return;
+  }
+  el.innerHTML = items.map((item, i) => `
+    <div class="item-card" data-id="${item.id}">
+      <div class="item-num">
+        <div class="num">${i+1}</div>
+        <div class="num-label">item</div>
+      </div>
+      <div class="item-body">
+        <div class="item-top">
+          <span class="tag tag-grocery">Grocery</span>
+          ${item.url ? '<span class="tag tag-url">has link</span>' : ''}
+        </div>
+        <div class="item-inputs">
+          <input data-field="name" value="${esc(item.name)}" placeholder="Item name">
+          <input data-field="quantity" value="${esc(item.quantity)}" placeholder="Qty">
+          <input data-field="url" value="${esc(item.url||'')}" placeholder="URL (optional)">
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="btn-save" onclick="saveItem(this)">Save</button>
+        <button class="btn-del"  onclick="deleteItem(this)">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function getCard(btn) { return btn.closest('.item-card'); }
+function getVal(card, field) { return card.querySelector(`[data-field="${field}"]`).value.trim(); }
 
 async function saveItem(btn) {
-  const row = getRow(btn);
-  const id = row.dataset.id;
-  await fetch(`/admin/items/${id}`, {
+  const card = getCard(btn);
+  await fetch(`/admin/items/${card.dataset.id}`, {
     method: 'PUT',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ name: getVal(row,'name'), quantity: getVal(row,'quantity'), url: getVal(row,'url') })
+    body: JSON.stringify({ name: getVal(card,'name'), quantity: getVal(card,'quantity'), url: getVal(card,'url') })
   });
+  btn.textContent = '✓';
+  setTimeout(() => btn.textContent = 'Save', 1200);
 }
 
 async function deleteItem(btn) {
-  const row = getRow(btn);
-  await fetch(`/admin/items/${row.dataset.id}`, { method: 'DELETE' });
+  const card = getCard(btn);
+  await fetch(`/admin/items/${card.dataset.id}`, { method: 'DELETE' });
 }
 
 async function placeOrder() {
@@ -227,7 +302,7 @@ async function placeOrder() {
   const btn = document.getElementById('place-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Building cart…';
-  setStatus('running', 'Playwright is logging into Uber Eats and adding items to your cart. This takes ~1–2 minutes…');
+  setStatus('running', 'Logging into Uber Eats and adding items. Takes ~1–2 min…');
   await fetch('/admin/place-order', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -246,21 +321,16 @@ async function addAddress() {
   const address = document.getElementById('new-addr-addr').value.trim();
   if (!name || !address) return;
   const r = await fetch('/admin/addresses', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ name, address })
   });
-  if (r.ok) {
-    document.getElementById('new-addr-name').value = '';
-    document.getElementById('new-addr-addr').value = '';
-    location.reload();
-  }
+  if (r.ok) location.reload();
 }
 
 async function deleteAddress(btn) {
-  const li = btn.closest('li');
-  await fetch(`/admin/addresses/${li.dataset.id}`, { method: 'DELETE' });
-  li.remove();
+  const row = btn.closest('.addr-row');
+  await fetch(`/admin/addresses/${row.dataset.id}`, { method: 'DELETE' });
+  row.remove();
 }
 </script>
 </body>

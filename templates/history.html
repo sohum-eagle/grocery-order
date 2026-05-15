@@ -3,71 +3,128 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Order History</title>
+<title>Order History — Grocery Order</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-         background: #f5f5f5; color: #222; min-height: 100vh; }
-  header { background: #000; color: #fff; padding: 16px 20px;
-           display: flex; align-items: center; justify-content: space-between; }
-  header h1 { font-size: 1.1rem; font-weight: 600; }
-  header a { color: #aaa; text-decoration: none; font-size: .9rem; }
-  header a:hover { color: #fff; }
-  main { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
-  .card { background: #fff; border-radius: 12px; padding: 20px;
-          box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 16px; }
-  .order-header { display: flex; justify-content: space-between; align-items: center;
-                  margin-bottom: 12px; }
-  .order-title { font-weight: 600; font-size: 1rem; }
-  .order-meta { font-size: .8rem; color: #888; }
-  .order-badge { background: #e8faf0; color: #0a6634; border-radius: 999px;
-                 font-size: .75rem; padding: 2px 10px; font-weight: 600; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         background: #fafafa; color: #111; min-height: 100vh; }
+  .page-header { background: #fff; border-bottom: 1px solid #e4e4e7; padding: 24px 32px 0; }
+  .page-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+  .page-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.3px; }
+  .page-header p  { color: #71717a; font-size: .875rem; margin-bottom: 16px; }
+  .header-nav { display: flex; gap: 16px; align-items: center; padding-top: 4px; }
+  .header-nav a { font-size: .82rem; color: #71717a; text-decoration: none; }
+  .header-nav a:hover { color: #111; }
+  .tabs { display: flex; border-top: 1px solid #e4e4e7; margin-top: 16px; }
+  .tab { padding: 10px 16px; font-size: .875rem; color: #71717a;
+         border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: #111; border-bottom-color: #111; font-weight: 500; }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 24px; }
+
+  /* Order card */
+  .order-card { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px;
+                padding: 0; margin-bottom: 12px; overflow: hidden; }
+  .order-head { display: flex; align-items: center; justify-content: space-between;
+                padding: 14px 18px; border-bottom: 1px solid #f4f4f5; }
+  .order-title { font-weight: 600; font-size: .95rem; }
+  .order-meta  { font-size: .78rem; color: #71717a; margin-top: 2px; }
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+           border-radius: 999px; font-size: .72rem; font-weight: 600; }
+  .badge-placed { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .badge-open   { background: #fefce8; color: #854d0e; border: 1px solid #fde047; }
+
+  /* Items table */
   table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: .78rem; color: #aaa; font-weight: 500;
-       padding: 0 8px 6px 0; border-bottom: 1px solid #eee; }
-  td { padding: 8px 8px 8px 0; border-bottom: 1px solid #f8f8f8;
-       font-size: .9rem; vertical-align: middle; }
+  th { text-align: left; font-size: .75rem; font-weight: 500; color: #a1a1aa;
+       padding: 10px 18px 8px; border-bottom: 1px solid #f4f4f5; }
+  td { padding: 10px 18px; border-bottom: 1px solid #f9f9f9;
+       font-size: .875rem; vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
-  .empty { color: #aaa; text-align: center; padding: 40px 0; }
-  a.back { color: #06c167; text-decoration: none; font-size: .9rem; }
+  .td-name { font-weight: 500; }
+  .td-qty  { color: #52525b; }
+  .td-url  { color: #1d4ed8; }
+  .td-url a { text-decoration: none; font-size: .8rem; }
+  .td-url a:hover { text-decoration: underline; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px;
+         font-size: .71rem; font-weight: 600; }
+  .tag-grocery { background: #dcfce7; color: #15803d; }
+
+  .empty-state { text-align: center; padding: 60px 0; color: #a1a1aa; font-size: .9rem; }
+  .col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .col-header h3 { font-size: .95rem; font-weight: 600; }
+  .col-count { background: #f4f4f5; border: 1px solid #e4e4e7; color: #52525b;
+               border-radius: 999px; font-size: .75rem; font-weight: 600;
+               padding: 1px 9px; text-align: center; }
 </style>
 </head>
 <body>
-<header>
-  <h1>🛒 Order History</h1>
-  <a href="/admin">← Back to admin</a>
-</header>
+<div class="page-header">
+  <div class="page-header-top">
+    <div>
+      <h1>Order History</h1>
+      <p>All past grocery orders placed through the app.</p>
+    </div>
+    <div class="header-nav">
+      <a href="/admin">← Back to admin</a>
+      <a href="/">Submission page ↗</a>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active">All Orders</div>
+  </div>
+</div>
+
 <main>
-{% if history %}
+  {% if history %}
+  <div class="col-header">
+    <h3>Orders</h3>
+    <span class="col-count">{{ history|length }}</span>
+  </div>
+
   {% for entry in history %}
-  <div class="card">
-    <div class="order-header">
+  <div class="order-card">
+    <div class="order-head">
       <div>
-        <div class="order-title">Order #{{ entry.order.id }}
-          {% if entry.order.addr_name %} — {{ entry.order.addr_name }}{% endif %}
-          {% if entry.order.ue_store %} ({{ entry.order.ue_store }}){% endif %}
+        <div class="order-title">
+          Order #{{ entry.order.id }}
+          {% if entry.order.addr_name %} · {{ entry.order.addr_name }}{% endif %}
+          {% if entry.order.ue_store %} · {{ entry.order.ue_store }}{% endif %}
         </div>
-        <div class="order-meta">{{ entry.order.created_at }}</div>
+        <div class="order-meta">{{ entry.order.created_at }} · {{ entry.items|length }} item{{ 's' if entry.items|length != 1 }}</div>
       </div>
-      <span class="order-badge">{{ entry.order.status }}</span>
+      <span class="badge badge-{{ entry.order.status }}">
+        {% if entry.order.status == 'placed' %}✓ Placed{% else %}{{ entry.order.status }}{% endif %}
+      </span>
     </div>
     <table>
-      <thead><tr><th>Item</th><th>Qty</th><th>URL</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>URL</th>
+        </tr>
+      </thead>
       <tbody>
         {% for item in entry.items %}
         <tr>
-          <td>{{ item.name }}</td>
-          <td>{{ item.quantity }}</td>
-          <td>{% if item.url %}<a href="{{ item.url }}" target="_blank">link</a>{% else %}—{% endif %}</td>
+          <td class="td-name">
+            <span class="tag tag-grocery">Grocery</span>&nbsp; {{ item.name }}
+          </td>
+          <td class="td-qty">{{ item.quantity }}</td>
+          <td class="td-url">
+            {% if item.url %}<a href="{{ item.url }}" target="_blank">View on UE ↗</a>
+            {% else %}<span style="color:#d4d4d8">—</span>{% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% endfor %}
-{% else %}
-  <div class="empty">No orders placed yet.</div>
-{% endif %}
+
+  {% else %}
+  <div class="empty-state">No orders placed yet.</div>
+  {% endif %}
 </main>
 </body>
 </html>
