@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grocery Order</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: #f5f5f5; color: #222; min-height: 100vh; }
+  header { background: #000; color: #fff; padding: 16px 20px;
+           display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: .5px; }
+  .badge { background: #06c167; color: #fff; border-radius: 999px;
+           font-size: .75rem; padding: 2px 10px; font-weight: 600; }
+  main { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px;
+          box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 20px; }
+  .card h2 { font-size: .9rem; font-weight: 600; text-transform: uppercase;
+             letter-spacing: .5px; color: #555; margin-bottom: 16px; }
+  .form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .form-row input { flex: 1; min-width: 120px; padding: 10px 12px;
+                    border: 1px solid #ddd; border-radius: 8px; font-size: .95rem; }
+  .form-row input:focus { outline: none; border-color: #06c167; }
+  .form-row input[name="url"] { flex: 2; }
+  .btn-add { background: #06c167; color: #fff; border: none; border-radius: 8px;
+             padding: 10px 20px; font-size: .95rem; font-weight: 600; cursor: pointer;
+             white-space: nowrap; }
+  .btn-add:active { background: #059a55; }
+  .item-list { list-style: none; }
+  .item-row { display: flex; align-items: center; gap: 10px;
+              padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .item-row:last-child { border-bottom: none; }
+  .item-name { font-weight: 500; flex: 1; }
+  .item-qty { color: #666; font-size: .9rem; white-space: nowrap; }
+  .item-url { font-size: .8rem; color: #06c167; word-break: break-all; }
+  .empty { color: #aaa; font-size: .9rem; text-align: center; padding: 24px 0; }
+  .count { font-size: .8rem; color: #888; margin-bottom: 12px; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+           background: #222; color: #fff; padding: 10px 22px; border-radius: 999px;
+           font-size: .9rem; opacity: 0; transition: opacity .3s;
+           pointer-events: none; z-index: 99; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛒 Grocery Order</h1>
+  <span class="badge" id="live-dot">● LIVE</span>
+</header>
+<main>
+  <div class="card">
+    <h2>Add an item</h2>
+    <form id="add-form">
+      <div class="form-row">
+        <input name="name" placeholder="Item name *" required autocomplete="off">
+        <input name="quantity" placeholder="Qty *" required autocomplete="off" style="flex:0 0 90px">
+        <input name="url" placeholder="Uber Eats URL (optional)" autocomplete="off">
+      </div>
+      <br>
+      <button class="btn-add" type="submit">Add to list</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Current list</h2>
+    <div class="count" id="count"></div>
+    <ul class="item-list" id="item-list">
+      {% if items %}
+        {% for item in items %}
+        <li class="item-row">
+          <div>
+            <div class="item-name">{{ item.name }}</div>
+            {% if item.url %}<div class="item-url"><a href="{{ item.url }}" target="_blank">link</a></div>{% endif %}
+          </div>
+          <div class="item-qty">× {{ item.quantity }}</div>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li class="empty" id="empty-msg">No items yet — be the first!</li>
+      {% endif %}
+    </ul>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const form = document.getElementById('add-form');
+const list = document.getElementById('item-list');
+const countEl = document.getElementById('count');
+const toast = document.getElementById('toast');
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function renderItems(items) {
+  if (!items.length) {
+    list.innerHTML = '<li class="empty">No items yet — be the first!</li>';
+    countEl.textContent = '';
+    return;
+  }
+  countEl.textContent = items.length + ' item' + (items.length === 1 ? '' : 's');
+  list.innerHTML = items.map(i => `
+    <li class="item-row">
+      <div>
+        <div class="item-name">${escHtml(i.name)}</div>
+        ${i.url ? `<div class="item-url"><a href="${escHtml(i.url)}" target="_blank">link</a></div>` : ''}
+      </div>
+      <div class="item-qty">× ${escHtml(i.quantity)}</div>
+    </li>`).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData(form);
+  const body = { name: fd.get('name'), quantity: fd.get('quantity'), url: fd.get('url') };
+  const r = await fetch('/items', { method: 'POST', headers: {'Content-Type':'application/json'},
+                                     body: JSON.stringify(body) });
+  if (r.ok) { form.reset(); showToast('Added!'); }
+  else { const d = await r.json(); showToast(d.error || 'Error'); }
+});
+
+// SSE
+const es = new EventSource('/events');
+es.addEventListener('refresh', e => {
+  renderItems(JSON.parse(e.data));
+});
+es.onerror = () => {
+  document.getElementById('live-dot').textContent = '○ offline';
+  document.getElementById('live-dot').style.background = '#ccc';
+};
+
+// Init count
+const initItems = {{ items | tojson }};
+if (initItems.length) countEl.textContent = initItems.length + ' item' + (initItems.length === 1 ? '' : 's');
+</script>
+</body>
+</html>
