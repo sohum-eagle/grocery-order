@@ -36,4 +36,4 @@ RUN playwright install chromium --with-deps 2>/dev/null || true
 COPY . .
 
 EXPOSE 5000
-CMD gunicorn app:app --workers 1 --threads 8 --timeout 120 --bind 0.0.0.0:${PORT:-5000}
+CMD ["/bin/sh", "-c", "gunicorn app:app --workers 1 --threads 8 --timeout 120 --bind 0.0.0.0:${PORT:-5000}"]
